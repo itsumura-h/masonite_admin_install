@@ -5,6 +5,7 @@ Masonite Admin
 ### 1.pip install
 ```
 pip install git+https://github.com/itsumura-h/masonite_admin.git
+pip install git+https://github.com/itsumura-h/masonite_admin.git@pickle_login
 ```
 
 ### 2.Add some scripts
