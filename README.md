@@ -4,7 +4,10 @@ Masonite Admin
 ## How to install
 ### 1.pip install
 ```
+# Login session management with model
 pip install git+https://github.com/itsumura-h/masonite_admin.git
+
+# Login session management with pickle
 pip install git+https://github.com/itsumura-h/masonite_admin.git@pickle_login
 ```
 
