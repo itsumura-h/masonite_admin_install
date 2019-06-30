@@ -134,16 +134,15 @@ LOGIN_CONF = {
         self.line('<info>AdminUser '+admin_user_output+'</info>')
         # self.line('<info>LoginToken '+login_token_output+'</info>')
 
-        #==================== Edit Middleware ====================
+        #==================== Create AdminMiddleware ====================
         filedata = '''
+import datetime, pickle
+
 from masonite.request import Request
 from masonite.response import Response
 
-# from app.models.LoginToken import LoginToken
 from admin.web.LoginToken import LoginToken
 from config.admin import LOGIN_CONF
-
-import pickle, datetime
 
 timeout = datetime.timedelta(hours=1)
 
@@ -197,25 +196,56 @@ class AdminMiddleware:
             return False
 
 '''
-        middleware_path = 'app/http/middleware/AdminMiddleware.py'
-        with open(middleware_path, 'w') as f:
+        admin_middleware_path = 'app/http/middleware/AdminMiddleware.py'
+        with open(admin_middleware_path, 'w') as f:
             f.write(filedata)
 
-        # with open(middleware_path, 'r') as f:
-        #     filedata = f.read()
+        admin_middleware_path = 'app/http/middleware/AdminMiddleware.py'
+        is_exists = os.path.exists(admin_middleware_path)
+        if not is_exists:
+            with open(admin_middleware_path, 'w') as f:
+                f.write(filedata)
+            self.line('<info>'+admin_middleware_path+' Created Successfully!</info>')
+        else:
+            self.line('<info>'+admin_middleware_path+' Already Exists!</info>')
 
-        # if "#LoginToken" in filedata:
-        #     if isdir:
-        #         filedata = filedata.replace('#LoginToken', 'from app.models.LoginToken import LoginToken')
-        #     else:
-        #         filedata = filedata.replace('#LoginToken', 'from app.LoginToken import LoginToken')
+        #==================== Create ResetParamsMiddleware ====================
+        filedata = '''
+"""ResetParams Middleware."""
 
-        #     with open(middleware_path, 'w') as f:
-        #         f.write(filedata)
+from masonite.request import Request
 
-        #     self.line('<info>Edit '+middleware_path+' Successfully!</info>')
-        # else:
-        #     self.line('<info>'+middleware_path+' Is Already Edited!</info>')
+
+class ResetParamsMiddleware:
+    """ResetParams Middleware.
+        To hundle Pypy GC error. Request's instance is reused.
+    """
+
+    def __init__(self, request: Request):
+        """Inject Any Dependencies From The Service Container.
+
+        Arguments:
+            Request {masonite.request.Request} -- The Masonite request object
+        """
+        self.request = request
+
+    def before(self):
+        """Run This Middleware Before The Route Executes."""
+        pass
+
+    def after(self):
+        """Run This Middleware After The Route Executes."""
+        self.request.request_variables = {}
+
+'''
+        reset_params_middleware_path = 'app/http/middleware/ResetParamsMiddleware.py'
+        is_exists = os.path.exists(reset_params_middleware_path)
+        if not is_exists:
+            with open(reset_params_middleware_path, 'w') as f:
+                f.write(filedata)
+            self.line('<info>'+reset_params_middleware_path+' Created Successfully!</info>')
+        else:
+            self.line('<info>'+reset_params_middleware_path+' Already Exists!</info>')
 
         #==================== Edit Middleware Config ====================
         middleware_conf_path = 'config/middleware.py'
@@ -227,6 +257,9 @@ class AdminMiddleware:
             self.line('<info>'+middleware_conf_path+' Is Already Edited!</info>')
         else:
             lines = [
+                "",
+                "from app.http.middleware.ResetParamsMiddleware import ResetParamsMiddleware",
+                "HTTP_MIDDLEWARE += [ResetParamsMiddleware]"
                 "",
                 "from app.http.middleware.AdminMiddleware import AdminMiddleware",
                 "ROUTE_MIDDLEWARE['admin'] = AdminMiddleware"
@@ -300,7 +333,8 @@ class AdminMiddleware:
         self.line('<info>Install Compleated for...</info>')
         self.line('    <comment>'+config_path+'</comment>')
         self.line('    <comment>'+auth_path+'</comment>')
-        self.line('    <comment>'+middleware_conf_path+'</comment>')
+        self.line('    <comment>'+admin_middleware_conf_path+'</comment>')
+        self.line('    <comment>'+reset_params_middleware_path+'</comment>')
         self.line('    <comment>'+csrf_middleware_path+'</comment>')
         self.line('    <comment>'+admin_user_model_path+'</comment>')
         # self.line('    <comment>'+login_token_model_path+'</comment>')
